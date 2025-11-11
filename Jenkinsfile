@@ -42,7 +42,8 @@ pipeline {
             steps {
                 script {
                     echo "Running new chat-app container on port 3000..."
-                    bat "docker run -d -p 3000:3000 --name chat-app chat-app:${env.BUILD_NUMBER}"
+                    bat "docker run -d -p 8080:3000 --name chat-app chat-app:${env.BUILD_NUMBER}"
+
                 }
             }
         }
