@@ -4,23 +4,30 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                // ✅ Use the correct branch name
                 git branch: 'master', url: 'https://github.com/ANVITHA-04/chat.git'
             }
         }
 
         stage('Verify Files') {
             steps {
-                // ✅ Optional: helps you confirm that Dockerfile exists in the workspace
                 bat 'dir'
+            }
+        }
+
+        stage('Cleanup Old Containers') {
+            steps {
+                script {
+                    echo "Stopping and removing any existing chat-app container..."
+                    bat 'docker stop chat-app || echo "No container to stop"'
+                    bat 'docker rm chat-app || echo "No container to remove"'
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // ✅ Explicitly define context as current directory
-                    dockerImage = docker.build("chat-app", ".")
+                    def dockerImage = docker.build("chat-app:${env.BUILD_NUMBER}", ".")
                 }
             }
         }
@@ -28,8 +35,8 @@ pipeline {
         stage('Run Container') {
             steps {
                 script {
-                    // ✅ Run container with port mapping
-                    dockerImage.run('-p 3000:3000')
+                    echo "Running new chat-app container on port 3000..."
+                    bat 'docker run -d -p 3000:3000 --name chat-app chat-app:${env.BUILD_NUMBER}'
                 }
             }
         }
