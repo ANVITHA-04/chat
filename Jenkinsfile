@@ -18,8 +18,14 @@ pipeline {
             steps {
                 script {
                     echo "Stopping and removing any existing chat-app container..."
-                    bat 'docker stop chat-app || echo "No container to stop"'
-                    bat 'docker rm chat-app || echo "No container to remove"'
+                    // ✅ Wrap commands to ignore errors safely in Windows
+                    bat '''
+                    @echo off
+                    echo Checking for existing chat-app container...
+                    docker stop chat-app 2>nul || echo No container to stop
+                    docker rm chat-app 2>nul || echo No container to remove
+                    exit /b 0
+                    '''
                 }
             }
         }
@@ -36,7 +42,7 @@ pipeline {
             steps {
                 script {
                     echo "Running new chat-app container on port 3000..."
-                    bat 'docker run -d -p 3000:3000 --name chat-app chat-app:${env.BUILD_NUMBER}'
+                    bat "docker run -d -p 3000:3000 --name chat-app chat-app:${env.BUILD_NUMBER}"
                 }
             }
         }
