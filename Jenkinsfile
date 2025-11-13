@@ -8,6 +8,7 @@ pipeline {
     }
 
     stages {
+
         stage('Clone Repository') {
             steps {
                 git branch: 'master', url: 'https://github.com/ANVITHA-04/chat.git'
@@ -17,7 +18,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo "Building Docker image..."
+                    echo "🛠 Building Docker image..."
                     docker.build("${IMAGE_NAME}:${env.BUILD_NUMBER}", ".")
                 }
             }
@@ -26,11 +27,11 @@ pipeline {
         stage('Cleanup Old Container') {
             steps {
                 script {
-                    echo "Stopping and removing old container (if exists)..."
+                    echo "🧹 Cleaning old container..."
                     bat """
-                    docker stop ${CONTAINER_NAME} 2>nul || echo No running container found
-                    docker rm ${CONTAINER_NAME} 2>nul || echo No container to remove
-                    exit /b 0
+                    docker stop ${CONTAINER_NAME} 2>nul || echo No running container
+                    docker rm ${CONTAINER_NAME} 2>nul || echo No old container
+                    exit 0
                     """
                 }
             }
@@ -39,7 +40,7 @@ pipeline {
         stage('Run Updated Container') {
             steps {
                 script {
-                    echo "Running updated container on port ${PORT}..."
+                    echo "🚀 Running container on port ${PORT}..."
                     bat """
                     docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${IMAGE_NAME}:${env.BUILD_NUMBER}
                     """
@@ -50,7 +51,6 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    echo "Verifying container status..."
                     bat "docker ps"
                 }
             }
@@ -59,10 +59,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Chat App successfully built and running on port 8080!"
+            echo "✅ Chat App deployed successfully on http://localhost:8080 🚀"
         }
         failure {
-            echo "❌ Build or deployment failed. Please check logs."
+            echo "❌ Deployment failed. Check Jenkins logs."
         }
     }
 }
